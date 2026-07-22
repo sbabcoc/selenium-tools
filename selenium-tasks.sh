@@ -189,11 +189,6 @@ cmd_release() {
     ./gradlew install publish closeAndReleaseStagingRepositories -Pprofile=selenium3 -x test -x testNG
     ./gradlew install publish closeAndReleaseStagingRepositories -Pprofile=selenium4 -x test -x testNG
 
-    # start new dev cycle in selenium-foundation
-    local next_snapshot=$(./gradlew properties -Pprofile=selenium4 -q | grep "^version:" | awk '{print $2}')
-    git commit --allow-empty -m "Start $next_snapshot development cycle"
-    git push origin main
-
     # selenium-grid-manager
     echo "--- selenium-grid-manager ---"
     cd "$MANAGER_DIR"
