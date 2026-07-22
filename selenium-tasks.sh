@@ -109,8 +109,7 @@ cmd_install() {
 
     echo "--- selenium-bom ---"
     cd "$BOM_DIR"
-    ./gradlew install -Pprofile=selenium3
-    ./gradlew install -Pprofile=selenium4
+    ./gradlew install
 
     echo "--- Selenium-Foundation ---"
     cd "$FOUNDATION_DIR"
@@ -179,10 +178,8 @@ cmd_release() {
     cd "$BOM_DIR"
     git tag "v$version"
     git push origin "v$version"
-    ./gradlew install -Pprofile=selenium3
-    ./gradlew install -Pprofile=selenium4
-    ./gradlew publish closeAndReleaseStagingRepositories -Pprofile=selenium3
-    ./gradlew publish closeAndReleaseStagingRepositories -Pprofile=selenium4
+    ./gradlew install
+    ./gradlew publish closeAndReleaseStagingRepositories
 
     # selenium-foundation
     echo "--- Selenium-Foundation ---"
