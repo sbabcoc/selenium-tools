@@ -87,20 +87,40 @@ check_ready() {
 
 cmd_versions() {
     echo "=== Current versions ==="
-    local prev_version=""
-    local mismatch=false
+    local versions=()
+    local lagging=()
+    local highest_base=""
     for i in "${!PROJECTS[@]}"; do
         local dir="${PROJECTS[$i]}"
         local name="${PROJECT_NAMES[$i]}"
         local version=$(get_base_version "$dir")
         echo "  $name: $version"
-        if [ -n "$prev_version" ] && [ "$version" != "$prev_version" ]; then
-            mismatch=true
+        versions[$i]=$version
+
+        local base=$(echo "$version" | sed 's/-SNAPSHOT$//')
+        if [ -z "$highest_base" ] || [ "$(printf '%s\n%s' "$base" "$highest_base" | sort -V | tail -1)" = "$base" ] && [ "$base" != "$highest_base" ]; then
+            highest_base=$base
         fi
-        prev_version=$version
     done
+
+    local mismatch=false
+    for i in "${!PROJECTS[@]}"; do
+        local base=$(echo "${versions[$i]}" | sed 's/-SNAPSHOT$//')
+        if [ "$base" != "$highest_base" ]; then
+            mismatch=true
+            lagging+=("${PROJECTS[$i]}:${PROJECT_NAMES[$i]}")
+        fi
+    done
+
     if $mismatch; then
         echo "WARNING: Version mismatch detected across projects"
+        echo ""
+        echo "To reconcile, advance the lagging project(s) to the current dev cycle:"
+        for entry in "${lagging[@]}"; do
+            local dir="${entry%%:*}"
+            local name="${entry##*:}"
+            echo "  cd $dir && git commit --allow-empty -m \"Advance to next development cycle to match dependent projects\" && git push origin main"
+        done
     fi
 }
 
