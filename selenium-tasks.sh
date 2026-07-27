@@ -196,6 +196,12 @@ cmd_release() {
     # selenium-bom
     echo "--- selenium-bom ---"
     cd "$BOM_DIR"
+    ./gradlew -PartifactVersion="$version" updateReadme updateSinceAnnotations checkSincePlaceholders
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        git add -u
+        git commit -m "Update version refs and resolve placeholders for $version"
+        git push origin main
+    fi
     git tag "v$version"
     git push origin "v$version"
     ./gradlew install
@@ -204,6 +210,12 @@ cmd_release() {
     # selenium-foundation
     echo "--- Selenium-Foundation ---"
     cd "$FOUNDATION_DIR"
+    ./gradlew -PartifactVersion="$version" updateReadme updateSinceAnnotations checkSincePlaceholders
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        git add -u
+        git commit -m "Update version refs and resolve placeholders for $version"
+        git push origin main
+    fi
     git tag "v$version"
     git push origin "v$version"
     ./gradlew install publish closeAndReleaseStagingRepositories -Pprofile=selenium3 -x test -x testNG
@@ -212,13 +224,19 @@ cmd_release() {
     # selenium-grid-manager
     echo "--- selenium-grid-manager ---"
     cd "$MANAGER_DIR"
+    ./gradlew -PartifactVersion="$version" updateReadme updateSinceAnnotations checkSincePlaceholders
+    if ! git diff --quiet || ! git diff --cached --quiet; then
+        git add -u
+        git commit -m "Update version refs and resolve placeholders for $version"
+        git push origin main
+    fi
     git tag "v$version"
     git push origin "v$version"
     ./gradlew install publish closeAndReleaseStagingRepositories -Pprofile=selenium3 -x test
     ./gradlew install publish closeAndReleaseStagingRepositories -Pprofile=selenium4 -x test
 
-    # install SNAPSHOT versions for new dev cycle
-    echo "--- Installing SNAPSHOT versions for dev cycle ---"
+    # install released versions locally
+    echo "--- Installing versions ---"
     cmd_install
 
     echo "=== Release $version complete ==="
