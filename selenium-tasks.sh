@@ -172,6 +172,7 @@ cmd_sync() {
         # switch to main
         git checkout main
         git pull origin main
+        git fetch --tags origin
 
         # delete merged local branches
         local merged=$(git branch --merged main | grep -v '^\*\|main' | tr -d ' ')
