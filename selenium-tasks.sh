@@ -8,12 +8,15 @@
 #   versions           Report current base versions of all three projects
 #   branch <name>      Create and push a named feature branch in all three projects
 #   sync               Pull all three projects, switch to main, delete merged local branches
+#   sandbox            Wipe and repopulate a standalone selenium-grid-manager runtime sandbox
 
 set -e
 
 BOM_DIR=~/code/selenium-bom
 FOUNDATION_DIR=~/code/Selenium-Foundation
 MANAGER_DIR=~/code/selenium-grid-manager
+SANDBOX_DIR=~/code/sandbox
+M2_MANAGER_REPO=~/.m2/repository/com/nordstrom/ui-tools/selenium-grid-manager
 
 PROJECTS=("$BOM_DIR" "$FOUNDATION_DIR" "$MANAGER_DIR")
 PROJECT_NAMES=("selenium-bom" "Selenium-Foundation" "selenium-grid-manager")
@@ -186,6 +189,33 @@ cmd_sync() {
     echo "=== Sync complete ==="
 }
 
+cmd_sandbox() {
+    echo "=== Setting up sandbox ==="
+
+    local base_version
+    base_version=$(get_base_version "$MANAGER_DIR")
+    [ -n "$base_version" ] || die "Could not determine selenium-grid-manager version"
+
+    local s3_version="${base_version}-s3"
+    local s4_version="${base_version}-s4"
+    local s3_jar="$M2_MANAGER_REPO/$s3_version/selenium-grid-manager-$s3_version.jar"
+    local s4_jar="$M2_MANAGER_REPO/$s4_version/selenium-grid-manager-$s4_version.jar"
+
+    [ -f "$s3_jar" ] || die "S3 artifact not found: $s3_jar (run 'install' first)"
+    [ -f "$s4_jar" ] || die "S4 artifact not found: $s4_jar (run 'install' first)"
+
+    echo "Wiping and recreating $SANDBOX_DIR"
+    rm -rf "$SANDBOX_DIR"
+    mkdir -p "$SANDBOX_DIR"
+    cp "$s3_jar" "$s4_jar" "$SANDBOX_DIR/"
+
+    echo "Bootstrapping runtime from S4 jar..."
+    cd "$SANDBOX_DIR"
+    java -jar "$(basename "$s4_jar")"
+
+    echo "=== Sandbox ready at $SANDBOX_DIR ==="
+}
+
 cmd_release() {
     local version=$1
     [ -n "$version" ] || die "Version required. Usage: selenium-tasks.sh release <version>"
@@ -257,6 +287,7 @@ case "$COMMAND" in
     versions) cmd_versions ;;
     branch)   cmd_branch "$@" ;;
     sync)     cmd_sync ;;
+    sandbox)  cmd_sandbox ;;
     *)
         echo "Usage: selenium-tasks.sh <command> [options]"
         echo ""
@@ -266,6 +297,7 @@ case "$COMMAND" in
         echo "  versions           Report current base versions of all three projects"
         echo "  branch <name>      Create and push a named feature branch in all three projects"
         echo "  sync               Pull all three projects, switch to main, delete merged local branches"
+        echo "  sandbox            Wipe and repopulate a standalone selenium-grid-manager runtime sandbox"
         exit 1
         ;;
 esac
