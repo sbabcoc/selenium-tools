@@ -17,6 +17,7 @@ single project's own repo.
   - `~/code/selenium-bom`
   - `~/code/Selenium-Foundation`
   - `~/code/selenium-grid-manager`
+- A JRE/JDK on `PATH` (only needed for `sandbox`)
 
 ## Installation
 
@@ -86,6 +87,17 @@ all three projects.
 For each project: checks out `main`, pulls, force-fetches tags, and deletes
 any local branches already merged into `main`.
 
+### `sandbox`
+
+Wipes and repopulates a standalone `selenium-grid-manager` runtime sandbox at
+`~/code/sandbox`:
+
+1. Resolves the current `selenium-grid-manager` base version and locates the
+   corresponding `selenium3`/`selenium4` artifacts (`-s3`/`-s4`) in the local
+   Maven repo — run `install` first if they're not there yet
+2. Deletes and recreates `~/code/sandbox`, then copies both jars into it
+3. Bootstraps the runtime by running `java -jar` on the `selenium4` jar
+
 ## Pre-flight checks
 
 `release` and `branch` both require, for every project, before doing
@@ -106,4 +118,3 @@ If any project fails a check, the script aborts before making any changes.
   cycle" empty commit after every release. A new dev cycle only starts when
   real work naturally lands — `versions` will flag the mismatch and hand you
   the commands to advance manually when that time comes.
-  
