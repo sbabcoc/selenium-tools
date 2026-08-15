@@ -196,8 +196,18 @@ cmd_sandbox() {
     base_version=$(get_base_version "$MANAGER_DIR")
     [ -n "$base_version" ] || die "Could not determine selenium-grid-manager version"
 
-    local s3_version="${base_version}-s3"
-    local s4_version="${base_version}-s4"
+    # -s3/-s4 belongs before -SNAPSHOT (e.g. 1.2.3-s4-SNAPSHOT), not after —
+    # base_version already has any -s3/-s4 stripped, but -SNAPSHOT (if present)
+    # is still on the end, so split it off before reassembling
+    local stem="$base_version"
+    local snapshot_suffix=""
+    if [[ "$base_version" == *-SNAPSHOT ]]; then
+        stem="${base_version%-SNAPSHOT}"
+        snapshot_suffix="-SNAPSHOT"
+    fi
+
+    local s3_version="${stem}-s3${snapshot_suffix}"
+    local s4_version="${stem}-s4${snapshot_suffix}"
     local s3_jar="$M2_MANAGER_REPO/$s3_version/selenium-grid-manager-$s3_version.jar"
     local s4_jar="$M2_MANAGER_REPO/$s4_version/selenium-grid-manager-$s4_version.jar"
 
